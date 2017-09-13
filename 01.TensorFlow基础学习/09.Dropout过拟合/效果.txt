@@ -1,0 +1,21 @@
+DROPOUT:1.0
+Iter:0,test accuracy:0.9564,train accuracy:0.964673
+Iter:1,test accuracy:0.967,train accuracy:0.978
+Iter:2,test accuracy:0.97,train accuracy:0.983473
+Iter:3,test accuracy:0.9711,train accuracy:0.986473
+Iter:4,test accuracy:0.9732,train accuracy:0.9882
+
+DROPOUT:0.7
+Iter:0,test accuracy:0.7164,train accuracy:0.716273
+Iter:1,test accuracy:0.7352,train accuracy:0.732891
+Iter:2,test accuracy:0.7326,train accuracy:0.741345
+Iter:3,test accuracy:0.7481,train accuracy:0.746491
+Iter:4,test accuracy:0.7448,train accuracy:0.752473
+Iter:5,test accuracy:0.7513,train accuracy:0.752055
+Iter:6,test accuracy:0.7537,train accuracy:0.759218
+Iter:7,test accuracy:0.7661,train accuracy:0.757382
+Iter:8,test accuracy:0.7613,train accuracy:0.765273
+Iter:9,test accuracy:0.7591,train accuracy:0.765055
+Iter:10,test accuracy:0.7666,train accuracy:0.768382
+Iter:11,test accuracy:0.7648,train accuracy:0.767418
+Iter:12,test accuracy:0.7578,train accuracy:0.771655

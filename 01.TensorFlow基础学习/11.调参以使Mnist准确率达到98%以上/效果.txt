@@ -1,0 +1,10 @@
+Iter:0,learning rating:0.001,accuracy:0.9676
+Iter:1,learning rating:0.00095,accuracy:0.974
+Iter:2,learning rating:0.0009025,accuracy:0.9777
+Iter:3,learning rating:0.000857375,accuracy:0.979
+Iter:4,learning rating:0.000814506,accuracy:0.9804
+Iter:5,learning rating:0.000773781,accuracy:0.9774
+Iter:6,learning rating:0.000735092,accuracy:0.981
+Iter:7,learning rating:0.000698337,accuracy:0.9763
+Iter:8,learning rating:0.00066342,accuracy:0.9812
+Iter:9,learning rating:0.000630249,accuracy:0.9817

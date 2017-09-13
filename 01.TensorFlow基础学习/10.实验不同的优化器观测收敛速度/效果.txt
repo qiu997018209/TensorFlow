@@ -1,0 +1,43 @@
+Adam优化器:
+	Iter:0,accuracy:0.9286
+	Iter:1,accuracy:0.9316
+	Iter:2,accuracy:0.9327
+	Iter:3,accuracy:0.9306
+	Iter:4,accuracy:0.9325
+	Iter:5,accuracy:0.9325
+	Iter:6,accuracy:0.9325
+	Iter:7,accuracy:0.9319
+	Iter:8,accuracy:0.9313
+	Iter:9,accuracy:0.9312
+	Iter:10,accuracy:0.9309
+	Iter:11,accuracy:0.9308
+	Iter:12,accuracy:0.9318
+	Iter:13,accuracy:0.9321
+	Iter:14,accuracy:0.932
+	Iter:15,accuracy:0.9323
+	Iter:16,accuracy:0.9313
+	Iter:17,accuracy:0.931
+	Iter:18,accuracy:0.9309
+	Iter:19,accuracy:0.9315
+	
+GradientDescent优化器:
+	Iter:0,accuracy:0.8312
+	Iter:1,accuracy:0.8707
+	Iter:2,accuracy:0.8815
+	Iter:3,accuracy:0.8877
+	Iter:4,accuracy:0.8942
+	Iter:5,accuracy:0.8973
+	Iter:6,accuracy:0.8997
+	Iter:7,accuracy:0.9011
+	Iter:8,accuracy:0.9037
+	Iter:9,accuracy:0.9056
+	Iter:10,accuracy:0.9064
+	Iter:11,accuracy:0.9075
+	Iter:12,accuracy:0.9084
+	Iter:13,accuracy:0.9094
+	Iter:14,accuracy:0.9097
+	Iter:15,accuracy:0.9112
+	Iter:16,accuracy:0.9119
+	Iter:17,accuracy:0.9123
+	Iter:18,accuracy:0.9131
+	Iter:19,accuracy:0.9132
