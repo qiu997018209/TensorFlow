@@ -1,0 +1,75 @@
+####开始记录本轮测试数据####
+测试log:测试卷积核num_filters对结果的影响
+embedding_dim=100	filter_sizes=1,3,5	num_filters=100	dropout_keep_prob=1.0	l2_reg_lambda=0	sequence_length=100	threshold=0.1	batch_size=100	num_epochs=1000	evaluate_every=100	checkpoint_every=100	allow_soft_placement=True	log_device_placement=False	file_path=F:/tensorflow/work/data/	quests_limit=4	
+accuracy=0.560000	time cost=0.597066	正确与错误回答的准确率误差:max_score=0.396308
+####本轮测试数据记录完毕####
+####开始记录本轮测试数据####
+测试log:测试卷积核num_filters对结果的影响
+embedding_dim=100	filter_sizes=1,3,5	num_filters=50	dropout_keep_prob=1.0	l2_reg_lambda=0	sequence_length=100	threshold=0.1	batch_size=100	num_epochs=1000	evaluate_every=100	checkpoint_every=100	allow_soft_placement=True	log_device_placement=False	file_path=F:/tensorflow/work/data/	quests_limit=4	
+accuracy=0.572000	time cost=0.510877	正确与错误回答的准确率误差:max_score=0.452976
+####本轮测试数据记录完毕####
+####开始记录本轮测试数据####
+测试log:测试卷积核num_filters对结果的影响
+embedding_dim=100	filter_sizes=1,3,5	num_filters=20	dropout_keep_prob=1.0	l2_reg_lambda=0	sequence_length=100	threshold=0.1	batch_size=100	num_epochs=1000	evaluate_every=100	checkpoint_every=100	allow_soft_placement=True	log_device_placement=False	file_path=F:/tensorflow/work/data/	quests_limit=4	
+accuracy=0.488000	time cost=0.417572	正确与错误回答的准确率误差:max_score=0.472937
+####本轮测试数据记录完毕####
+####开始记录本轮测试数据####
+测试log:测试卷积核num_filters对结果的影响
+embedding_dim=100	filter_sizes=1,3,5	num_filters=40	dropout_keep_prob=1.0	l2_reg_lambda=0	sequence_length=100	threshold=0.1	batch_size=100	num_epochs=1000	evaluate_every=100	checkpoint_every=100	allow_soft_placement=True	log_device_placement=False	file_path=F:/tensorflow/work/data/	quests_limit=4	
+accuracy=0.560000	time cost=0.445779	正确与错误回答的准确率误差:max_score=0.510605
+####本轮测试数据记录完毕####
+####开始记录本轮测试数据####
+测试log:测试卷积核num_filters对结果的影响
+embedding_dim=100	filter_sizes=1,3,5	num_filters=60	dropout_keep_prob=1.0	l2_reg_lambda=0	sequence_length=100	threshold=0.1	batch_size=100	num_epochs=1000	evaluate_every=100	checkpoint_every=100	allow_soft_placement=True	log_device_placement=False	file_path=F:/tensorflow/work/data/	quests_limit=4	
+accuracy=0.572000	time cost=0.512935	正确与错误回答的准确率误差:max_score=0.567779
+####本轮测试数据记录完毕####
+####开始记录本轮测试数据####
+测试log:测试向量间夹角的阈值 threshold对结果的影响
+embedding_dim=100	filter_sizes=1,3,5	num_filters=50	dropout_keep_prob=1.0	l2_reg_lambda=0	sequence_length=100	threshold=0.05	batch_size=100	num_epochs=1000	evaluate_every=100	checkpoint_every=100	num_cpu_core=8	allow_soft_placement=True	log_device_placement=False	file_path=F:/tensorflow/work/data/	quests_limit=4	
+accuracy=0.568000	time cost=0.471488	正确与错误回答的准确率误差:max_score=0.316409
+####本轮测试数据记录完毕####
+####开始记录本轮测试数据####
+测试log:测试向量间夹角的阈值 threshold对结果的影响
+embedding_dim=100	filter_sizes=1,3,5	num_filters=50	dropout_keep_prob=1.0	l2_reg_lambda=0	sequence_length=100	threshold=0.15	batch_size=100	num_epochs=1000	evaluate_every=100	checkpoint_every=100	num_cpu_core=8	allow_soft_placement=True	log_device_placement=False	file_path=F:/tensorflow/work/data/	quests_limit=4	
+accuracy=0.560000	time cost=0.483247	正确与错误回答的准确率误差:max_score=0.426738
+####本轮测试数据记录完毕####
+####开始记录本轮测试数据####
+测试log:测试filter_sizes对结果的影响
+embedding_dim=100	filter_sizes=1	num_filters=50	dropout_keep_prob=1.0	l2_reg_lambda=0	sequence_length=100	threshold=0.1	batch_size=100	num_epochs=1000	evaluate_every=100	checkpoint_every=100	num_cpu_core=8	allow_soft_placement=True	log_device_placement=False	file_path=F:/tensorflow/work/data/	quests_limit=4	
+accuracy=0.512000	time cost=0.219034	正确与错误回答的准确率误差:max_score=0.596012
+####本轮测试数据记录完毕####
+####开始记录本轮测试数据####
+测试log:测试filter_sizes对结果的影响
+embedding_dim=100	filter_sizes=1,3	num_filters=50	dropout_keep_prob=1.0	l2_reg_lambda=0	sequence_length=100	threshold=0.1	batch_size=100	num_epochs=1000	evaluate_every=100	checkpoint_every=100	num_cpu_core=8	allow_soft_placement=True	log_device_placement=False	file_path=F:/tensorflow/work/data/	quests_limit=4	
+accuracy=0.580000	time cost=0.321016	正确与错误回答的准确率误差:max_score=0.594498
+####本轮测试数据记录完毕####
+####开始记录本轮测试数据####
+测试log:测试filter_sizes对结果的影响
+embedding_dim=100	filter_sizes=1,2,4	num_filters=50	dropout_keep_prob=1.0	l2_reg_lambda=0	sequence_length=100	threshold=0.1	batch_size=100	num_epochs=1000	evaluate_every=100	checkpoint_every=100	num_cpu_core=8	allow_soft_placement=True	log_device_placement=False	file_path=F:/tensorflow/work/data/	quests_limit=4	
+accuracy=0.528000	time cost=0.428342	正确与错误回答的准确率误差:max_score=0.560347
+####本轮测试数据记录完毕####
+####开始记录本轮测试数据####
+测试log:测试filter_sizes对结果的影响
+embedding_dim=100	filter_sizes=1,2	num_filters=50	dropout_keep_prob=1.0	l2_reg_lambda=0	sequence_length=100	threshold=0.1	batch_size=100	num_epochs=1000	evaluate_every=100	checkpoint_every=100	num_cpu_core=8	allow_soft_placement=True	log_device_placement=False	file_path=F:/tensorflow/work/data/	quests_limit=4	
+accuracy=0.536000	time cost=0.295446	正确与错误回答的准确率误差:max_score=0.388788
+####本轮测试数据记录完毕####
+####开始记录本轮测试数据####
+测试log:测试filter_sizes对结果的影响
+embedding_dim=100	filter_sizes=1,4	num_filters=50	dropout_keep_prob=1.0	l2_reg_lambda=0	sequence_length=100	threshold=0.1	batch_size=100	num_epochs=1000	evaluate_every=100	checkpoint_every=100	num_cpu_core=8	allow_soft_placement=True	log_device_placement=False	file_path=F:/tensorflow/work/data/	quests_limit=4	
+accuracy=0.536000	time cost=0.383933	正确与错误回答的准确率误差:max_score=0.469477
+####本轮测试数据记录完毕####
+####开始记录本轮测试数据####
+测试log:测试filter_sizes对结果的影响
+embedding_dim=100	filter_sizes=1,2,3,4	num_filters=50	dropout_keep_prob=1.0	l2_reg_lambda=0	sequence_length=100	threshold=0.1	batch_size=100	num_epochs=1000	evaluate_every=100	checkpoint_every=100	num_cpu_core=8	allow_soft_placement=True	log_device_placement=False	file_path=F:/tensorflow/work/data/	quests_limit=4	
+accuracy=0.532000	time cost=0.534847	正确与错误回答的准确率误差:max_score=0.598525
+####本轮测试数据记录完毕####
+####开始记录本轮测试数据####
+测试log:测试标签对应语料规模对结果的影响
+embedding_dim=100	filter_sizes=1,3	num_filters=50	dropout_keep_prob=1.0	l2_reg_lambda=0	sequence_length=100	threshold=0.1	quests_limit=5	batch_size=100	num_epochs=1000	evaluate_every=100	checkpoint_every=100	num_cpu_core=8	allow_soft_placement=True	log_device_placement=False	file_path=F:/tensorflow/work/data/	
+accuracy=0.556757	time cost=0.308740	正确与错误回答的准确率误差:max_score=0.404218
+####本轮测试数据记录完毕####
+####开始记录本轮测试数据####
+测试log:测试标签对应语料规模对结果的影响
+embedding_dim=100	filter_sizes=1,3	num_filters=50	dropout_keep_prob=1.0	l2_reg_lambda=0	sequence_length=100	threshold=0.1	quests_limit=6	batch_size=100	num_epochs=1000	evaluate_every=100	checkpoint_every=100	num_cpu_core=8	allow_soft_placement=True	log_device_placement=False	file_path=F:/tensorflow/work/data/	
+accuracy=0.515528	time cost=0.349052	正确与错误回答的准确率误差:max_score=0.408957
+####本轮测试数据记录完毕####

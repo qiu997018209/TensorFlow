@@ -1,0 +1,6 @@
+model_checkpoint_path: "F:\\tensorflow\\work\\data\\runs\\checkpoints\\model-1000"
+all_model_checkpoint_paths: "F:\\tensorflow\\work\\data\\runs\\checkpoints\\model-600"
+all_model_checkpoint_paths: "F:\\tensorflow\\work\\data\\runs\\checkpoints\\model-700"
+all_model_checkpoint_paths: "F:\\tensorflow\\work\\data\\runs\\checkpoints\\model-800"
+all_model_checkpoint_paths: "F:\\tensorflow\\work\\data\\runs\\checkpoints\\model-900"
+all_model_checkpoint_paths: "F:\\tensorflow\\work\\data\\runs\\checkpoints\\model-1000"
