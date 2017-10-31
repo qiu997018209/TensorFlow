@@ -1,0 +1,5 @@
+model_checkpoint_path: "C:\\Users\\vcyber\\eclipse-workspace\\Tensorflow\\MyWork3\\data\\runs\\checkpoints\\model-40"
+all_model_checkpoint_paths: "C:\\Users\\vcyber\\eclipse-workspace\\Tensorflow\\MyWork3\\data\\runs\\checkpoints\\model-10"
+all_model_checkpoint_paths: "C:\\Users\\vcyber\\eclipse-workspace\\Tensorflow\\MyWork3\\data\\runs\\checkpoints\\model-20"
+all_model_checkpoint_paths: "C:\\Users\\vcyber\\eclipse-workspace\\Tensorflow\\MyWork3\\data\\runs\\checkpoints\\model-30"
+all_model_checkpoint_paths: "C:\\Users\\vcyber\\eclipse-workspace\\Tensorflow\\MyWork3\\data\\runs\\checkpoints\\model-40"

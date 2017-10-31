@@ -1,0 +1,90 @@
+
+训练请求接口：
+	请求：
+	{
+	  "id": "4427764465705334824",
+	  "jsonrpc": "2.0",
+	  "method": "retrain",// 需要方法名称
+	  "params": {
+	    "user_id": "2",//用户标识
+	  }
+	}
+	返回:
+	{
+	  "id": "4427764465705334824",
+	  "jsonrpc": "2.0",
+	  "result": {
+	    "user_id": "2",
+		"success": "true",
+		"message": "retrain start",
+	  }
+	}
+	
+
+训练进度查询接口：
+	请求：
+		{
+		  "id": "4427764465705334824",
+		  "jsonrpc": "2.0",
+		  "method": "lookup",  //需要方法名称
+		  "params": {
+		    "user_id": "2",//用户标识
+		  }
+		}
+	返回：
+		{
+		  "id": "4427764465705334824",
+		  "jsonrpc": "2.0",
+		  "result": {
+			"success": "true"
+		    "user_id": "2"
+		    "progress":"30%",
+		    "need_time":"50"
+		  }
+		}
+
+对话查询接口：
+	请求：
+		{
+		  "id": "4427764465705334824",
+		  "jsonrpc": "2.0",
+		  "method": "chat",  //需要方法名称
+		  "params": {
+			"user_id": "2",//用户标识
+		    "quest": "****",//问题
+		  }
+		}
+	返回：
+		{
+		  "id": "4427764465705334824",
+		  "jsonrpc": "2.0",
+		  "result": {
+			"success":"true"
+			"user_id": "2",//用户标识
+		    "quest": "xxxx",//原始问题
+		    "answer":"3",//qa的ID号
+		  }
+		}
+		
+
+问题转换接口：
+	请求：
+		{
+		  "id": "4427764465705334824",
+		  "jsonrpc": "2.0",
+		  "method": "generation",  //需要方法名称
+		  "params": {
+		    "question": "这是个待分析的问题",//用户标识
+			"user_id": "2",//用户标识
+		  }
+		}	
+	返回：
+		{
+		  "id": "5950835189124260626",
+		  "jsonrpc": "2.0",
+		  "method": "generation",
+		  "result": {
+			  "success":"true"
+			  "user_id": "2",//用户标识
+			  "questions": ["quest1","quest2",...]
+		}
