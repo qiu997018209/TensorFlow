@@ -16,7 +16,7 @@
 	python3 http_server.py
 
 8.如果需要直接运行，可加载以下我训练好的模型,放在quest_genaration目录下，然后运行http_server.py即可
-	http://pan.baidu.com/s/1pLUgZXL
+	http://pan.baidu.com/s/1gfdAKOb
 
 9.总结:本模型可以达到一个问法里一到2个关键词的替换
   优点:1.语法流畅，可读性好。2.其结果受人工编写的句式影响，其结果可控，稳定。
