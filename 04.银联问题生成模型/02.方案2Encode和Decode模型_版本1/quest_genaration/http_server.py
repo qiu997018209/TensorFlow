@@ -51,7 +51,7 @@ tf.app.flags.DEFINE_integer('max_article_sentences', 2,
 tf.app.flags.DEFINE_integer('max_abstract_sentences', 1,
                             'Max number of first sentences to use from the '
                             'abstract')
-tf.app.flags.DEFINE_integer('beam_size', 10,
+tf.app.flags.DEFINE_integer('beam_size', 5,
                             'beam size for beam search decoding.')
 tf.app.flags.DEFINE_integer('eval_interval_secs', 100, 'How often to run eval.')
 tf.app.flags.DEFINE_integer('checkpoint_secs', 100, 'How often to checkpoint.')
@@ -187,6 +187,7 @@ class myServer(BaseHTTPRequestHandler):
         if u'\u4e00' <= word <= u'\u9fff':
             return True
         return False
+    
     def get_words(self,sentence):
         words  = ''
         result = []
@@ -197,6 +198,18 @@ class myServer(BaseHTTPRequestHandler):
                     result.append(words)
                     words = '' 
                 result.append(word)
+            elif word in '@{<“"[(（': 
+                if(words != ''):
+                    result.append(words)
+                    words = '' 
+                result.append(word) 
+                words=''
+            elif word in '}，,.。 >]？?？，）)、/、*"”':
+                if(words != ''): 
+                    result.append(words)
+                    words = ''
+                result.append(word) 
+                words=''                                             
             else:
                 words +=word
         #最后一个字符

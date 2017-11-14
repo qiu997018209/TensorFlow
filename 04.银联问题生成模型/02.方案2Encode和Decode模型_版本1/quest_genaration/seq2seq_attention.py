@@ -52,7 +52,7 @@ tf.app.flags.DEFINE_integer('max_article_sentences', 1,
 tf.app.flags.DEFINE_integer('max_abstract_sentences', 1,
                             'Max number of first sentences to use from the '
                             'abstract')
-tf.app.flags.DEFINE_integer('beam_size', 10,
+tf.app.flags.DEFINE_integer('beam_size', 5,
                             'default 4,beam size for beam search decoding.')
 tf.app.flags.DEFINE_integer('eval_interval_secs', 1, '500,How often to run eval.')
 tf.app.flags.DEFINE_integer('checkpoint_secs', 1, '500,How often to checkpoint.')

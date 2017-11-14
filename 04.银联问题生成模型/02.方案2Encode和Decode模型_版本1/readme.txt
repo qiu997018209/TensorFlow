@@ -1,4 +1,5 @@
 1.原始模型地址:https://github.com/tensorflow/models/tree/master/research/textsum
+  模型原理说明:http://blog.csdn.net/tensorflowshizhan/article/details/69230070
 
 2.环境:tensorflow1.3 python3
 

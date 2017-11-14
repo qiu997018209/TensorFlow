@@ -145,7 +145,7 @@ class Seq2SeqAttentionModel(object):
       tf.stack（）这是一个矩阵拼接的函数，tf.unstack（）则是一个矩阵分解的函数，默认是按行分解
       self._articles维度是[hps.batch_size, hps.enc_timesteps]
       这样一来，encoder_inputs的每一次输入的都是本批次所有_articles的第一个单词组成一行
-      encoder_inputs就变成了[120,1,64]
+      encoder_inputs就变成了由120个[64,1]组成
       '''
       encoder_inputs = tf.unstack(tf.transpose(self._articles))
       decoder_inputs = tf.unstack(tf.transpose(self._abstracts))
@@ -159,7 +159,7 @@ class Seq2SeqAttentionModel(object):
         embedding = tf.get_variable(
             'embedding', [vsize, hps.emb_dim], dtype=tf.float32,
             initializer=tf.truncated_normal_initializer(stddev=1e-4))
-        #emb_encoder_inputs成为(x,y,z,m),其中x=120,y=1,z=64,m=128
+        #emb_encoder_inputs成为120个[64,1,128]组成
         emb_encoder_inputs = [tf.nn.embedding_lookup(embedding, x)
                               
                               for x in encoder_inputs]
@@ -184,7 +184,8 @@ class Seq2SeqAttentionModel(object):
           #同一个时刻的正向节点和反向节点是不共用的，作为输出的时候是两个节点输出一个结果
           #cell_fw代表前向的Cell,cell_bw代表反向Cell
           #将输入emb_encoder_inputs覆盖，作为下一步的输入，同时记录了前向RNN最后时刻的fw_state
-          #article_lens是hps.batch_size
+          #emb_encoder_inputs为120个[64,1,128]组成,static_bidirectional_rnn每次取一个，输出一个结果。
+          #最终新的emb_encoder_inputs中也有120个[64,2,256]
           #存在4层双向RNN
           (emb_encoder_inputs, fw_state, _) = tf.contrib.rnn.static_bidirectional_rnn(
               cell_fw, cell_bw, emb_encoder_inputs, dtype=tf.float32,
@@ -213,19 +214,20 @@ class Seq2SeqAttentionModel(object):
             hps.num_hidden,#256
             initializer=tf.random_uniform_initializer(-0.1, 0.1, seed=113),
             state_is_tuple=False)
+        #encoder_outputs原本是120个[64,2,256]
         #将每一个单词的维度变为:[64,1,512]
-        #这样一来encoder_outputs就变成了[120,64,1,512]
+        #这样一来encoder_outputs就变成了120个[64,1,512]
         encoder_outputs = [tf.reshape(x, [hps.batch_size, 1, 2*hps.num_hidden])
                            for x in encoder_outputs]
+        #将encoder_outputs拼接成[64,120,512]
+        #_enc_top_states是作为decode部分中attention的输入，_dec_in_state是decode部分中LSTM的输入，fw_state是前向RNN的最后的state状态
         self._enc_top_states = tf.concat(axis=1, values=encoder_outputs)
         self._dec_in_state = fw_state
         # During decoding, follow up _dec_in_state are fed from beam_search.
         # dec_out_state are stored by beam_search for next step feeding.
         initial_state_attention = (hps.mode == 'decode')
-        '''
-                        将正向 最后输出的state作为 attention_decode的输入initial_state    
-        attention_states是正向负向输出concatenate的所有output                    
-        '''
+        #emb_decoder_inputs是120个[64,1,128]组成，_dec_in_state是前向RNN的最后的state状态，_enc_top_states是encoder部分的所有输出
+        #decoder_outputs的decode阶段的输出，_dec_out_state是decode阶段中最后的lstm状态
         decoder_outputs, self._dec_out_state = tf.contrib.legacy_seq2seq.attention_decoder(
             emb_decoder_inputs, self._dec_in_state, self._enc_top_states,
             cell, num_heads=1, loop_function=loop_function,
@@ -237,16 +239,22 @@ class Seq2SeqAttentionModel(object):
           #tf.get_variable()会检测已经存在的变量是否已经共享.如果你想共享他们，你需要像下面使用的一样，通过reuse_variables()这个方法来指定.
           if i > 0:
             tf.get_variable_scope().reuse_variables()
+          #w是[num_hidden,vsize],num_hidden:256,vsize是词汇表大小,得到model_outputs的120个输出为:[64,vsize]
           model_outputs.append(
               tf.nn.xw_plus_b(decoder_outputs[i], w, v))
 
       if hps.mode == 'decode':
         with tf.variable_scope('decode_output'), tf.device('/cpu:0'):
+          #从vsize中取出那个字
+          #best_outputs是120个[64,1],model_outputs是120个[64,vsize]，因为取的是最大的argmax,因此视为最佳
           best_outputs = [tf.argmax(x, 1) for x in model_outputs]
           tf.logging.info('best_outputs%s', best_outputs[0].get_shape())
+          #self._outputs是[64,120]
           self._outputs = tf.concat(
               axis=1, values=[tf.reshape(x, [hps.batch_size, 1]) for x in best_outputs])
-
+          #取出最后的state，[64,vsize]
+          #top_k这个函数的作用是返回 input 中每行最大的 k 个数，并且返回它们所在位置的索引
+          #tf.nn.top_k(input, k, name=None)
           self._topk_log_probs, self._topk_ids = tf.nn.top_k(
               tf.log(tf.nn.softmax(model_outputs[-1])), hps.batch_size*2)
           
@@ -257,7 +265,9 @@ class Seq2SeqAttentionModel(object):
             return tf.nn.sampled_softmax_loss(
                 weights=w_t, biases=v, labels=labels, inputs=inputs,
                 num_sampled=hps.num_softmax_samples, num_classes=vsize)
-
+        #targets是[hps.batch_size, hps.dec_timesteps]
+        #loss_weights是[hps.batch_size, hps.dec_timesteps]
+        #model_outputs是
         if hps.num_softmax_samples != 0 and hps.mode == 'train':
           self._loss = seq2seq_lib.sampled_sequence_loss(
               decoder_outputs, targets, loss_weights, sampled_loss_func)
