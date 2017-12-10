@@ -1,0 +1,27 @@
+#使用tab键做分隔符
+
+
+can	能	可以
+why	为什么	为啥	为何	咋
+#本次跟新
+always	一直	总	总是	老是	经常	常常
+but	但是	但	却	而	可是
+buneng	不能	不可以	无法	没办法
+fail	失败	不成功
+chaxun	查询	查一查	查	查询一下	查下	查询下	查看下
+where	在那	在哪里	在哪儿	哪些地方	在什么地方
+
+
+koukuan	扣钱	扣费	扣款
+no	没有	没
+howchuli	如何处理	怎么办	怎么处理	怎么弄	咋办	肿么办
+how	如何	怎么	怎样
+buneng	不能	不可以	无法	没办法
+#三星手机型号
+i9300	Galaxy SIII	Galaxy S3	GT-I9300	GalaxySⅢ	S3	i9300 Galaxy SIII	9300	samsung siii
+sun	三星	SAMSUNG
+and	和;与
+
+app	APP	程序	应用	软件
+sd	存储卡	SD卡
+when	什么时间	啥时候	哪天
