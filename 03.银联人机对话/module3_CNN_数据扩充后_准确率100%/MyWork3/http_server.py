@@ -6,6 +6,7 @@ import json
 from threading import Thread
 import data_help as dh
 import numpy as np
+import argparse
 import tensorflow as tf
 from http.server import BaseHTTPRequestHandler
 from http.server import HTTPServer
@@ -29,6 +30,7 @@ class myServer(BaseHTTPRequestHandler):
         #默认加载data下的数据
         FLAGS = tf.flags.FLAGS
         cls.my_data = dh.data_help(user_id=user_id)
+        #cls.my_data = dh.data_help()
         checkpoint_file = tf.train.latest_checkpoint(os.path.join(cls.my_data.file_path,'runs','checkpoints'))     
         graph = tf.Graph()
         with graph.as_default():
@@ -42,6 +44,7 @@ class myServer(BaseHTTPRequestHandler):
                 cls.input_x = graph.get_operation_by_name("input_x").outputs[0]
                 cls.dropout_keep_prob = graph.get_operation_by_name("dropout_keep_prob").outputs[0]
                 cls.predictions = graph.get_operation_by_name("output/predictions").outputs[0] 
+                cls.probs = graph.get_operation_by_name("output/probs").outputs[0]
                         
     def __init__(self,request,client_address,hander):
         BaseHTTPRequestHandler.__init__(self,request, client_address,hander) 
@@ -78,22 +81,23 @@ class myServer(BaseHTTPRequestHandler):
             self.send_error(404, message =None)
     def process_lookup(self,post_data):
         #获取当前进度
+        rate=[]
         with open(os.path.join(self.my_data.file_path,'process_rate.txt'),'r',encoding='utf-8') as f:
             rate=f.readline().strip().split(':')
-            data={}
-            params={}
-            params['success']='true'
-            params['user_id']=post_data['params']['user_id']
-            params['progress']=("%d%%")%((int(rate[0])/int(rate[1]))*100)
-            params['need_time']=("%d")%(((int(rate[1])-int(rate[0]))*int(rate[2]))/60)
-            data['id']=post_data['id']
-            data['jsonrpc']=post_data['jsonrpc']
-            data['result']=params
-            self.wfile.write(json.dumps(data).encode(encoding ='utf_8', errors ='strict'))          
+        data={}
+        params={}
+        params['success']='true'
+        params['user_id']=post_data['params']['user_id']
+        params['progress']=("%d%%")%((int(rate[0])/int(rate[1]))*100)
+        params['need_time']=("%d")%(((int(rate[1])-int(rate[0]))*int(rate[2]))/60)
+        data['id']=post_data['id']
+        data['jsonrpc']=post_data['jsonrpc']
+        data['result']=params
+        self.wfile.write(json.dumps(data).encode(encoding ='utf_8', errors ='strict'))          
     
     def target(self,post_data):
-        user_id=post_data['params']['user_id']
-        cmd="python train.py -u %d"%(user_id)
+        user_id=post_data['params']['user_id']       
+        cmd="python3 train.py -u %d"%(user_id)
         if(0!=os.system(cmd)):
             print("web端请求重新训练失败")
             return
@@ -101,8 +105,11 @@ class myServer(BaseHTTPRequestHandler):
         myServer.train(user_id) 
                 
     def process_retrain(self,post_data):
+        #将上一次的数据归0
+        with open(os.path.join(self.my_data.file_path,'process_rate.txt'),'w',encoding='utf-8') as f:
+            f.write("%d:%d:%d\n"%(0,50,60))
         #重新开始训练
-        user_id=post_data['params']['user_id']         
+        user_id=post_data['params']['user_id']
         t=Thread(target=self.target,args=(post_data,))
         t.start()
         data={}
@@ -116,16 +123,22 @@ class myServer(BaseHTTPRequestHandler):
         self.wfile.write(json.dumps(data).encode(encoding ='utf_8', errors ='strict'))
                           
     def process_chat(self,post_data):
+        params={}
         quest = post_data['params']['quest']    
         quest = myServer.my_data.Reload_vocab(quest)          
-        predict = list(myServer.sess.run(myServer.predictions, {myServer.input_x: quest, myServer.dropout_keep_prob: 1.0}))[0]
-        answer = myServer.my_data.labels[predict]
+        predict, probs= list(myServer.sess.run([myServer.predictions,myServer.probs], {myServer.input_x: quest, myServer.dropout_keep_prob: 1.0}))
+        if(probs[0][predict]>=post_data['params']['rate']):
+            print("实际准确率为:%f,要求准确率为:%f"%(probs[0][predict],post_data['params']['rate']))
+            answer = myServer.my_data.labels[predict[0]]
+            params['success']="true"
+        else:
+            answer='准确率低于要求，结果不可用'
+            params['success']="false"
+            print("实际准确率为:%f,要求准确率为:%f"%(probs[0][predict[0]],post_data['params']['rate']))
         data={}
-        params={}
         params['quest']=post_data['params']['quest']
         params['answer']=answer
         params['user_id']=post_data['params']['user_id']
-        params['success']="true"
         data['id']=post_data['id']
         data['jsonrpc']=post_data['jsonrpc']
         data['result']=params     
@@ -137,9 +150,12 @@ class ThreadingHttpServer(ThreadingMixIn,HTTPServer):
 
              
 def main():      
-    #启动http服务   
+    #启动http服务 
+    parser = argparse.ArgumentParser() 
+    parser.add_argument('-p', '--port_num', help='server port num',type=int,default='8000')
+    args = parser.parse_args() 
     myServer.train()      
-    Server = ThreadingHttpServer(('',8000), myServer)
+    Server = ThreadingHttpServer(('',args.port_num), myServer)
     print("Start to listen on:%s:%d"%(Server.server_name,Server.server_port))
     Server.serve_forever()
     Server.server_close()    
