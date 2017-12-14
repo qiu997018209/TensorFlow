@@ -44,9 +44,6 @@ class my_lib(object):
         self.y_vocab=[]#所有标签向量化后的矩阵   
     #清理字符串
     def clean_str(self,string):
-        #长度太短的过滤掉
-        if(len(string)<=4):
-            return None
         #处理数字
         string = re.sub(r"[0-9]+",'<数字>', string)
         if(string=="\ufeffIC卡闪付是什么"):
@@ -260,15 +257,16 @@ class my_lib(object):
     #获取sentence里的每一个word基础单元
     def get_sentence_words(self,quest):
         words=[]
-        bEntry=False
         i=0
+        label_num=0        
         while(i<len(quest)):
             word=''
             if quest[i] == '@':
+                label_num+=1
                 word+=quest[i]
                 i+=1
                 while(i<len(quest) and self.isChinese(quest[i])==False):
-                    if(quest[i] in ',{，。<?？@）*、“'):
+                    if(quest[i] in ',{，。！（(”<?？@）*、“'):
                         break
                     word+=quest[i]
                     i+=1                   
@@ -277,9 +275,11 @@ class my_lib(object):
                 words.append(self.samewords[word])
             elif(quest[i]=='{'):
                 i+=1
-                while(i<len(quest) and quest[i]!='}'):
+                while(quest[i]=='}'):
                     word+=quest[i]
                     i+=1
+                    if(i>=len(quest)):
+                        print("缺少}:%s"%(quest))                    
                 if(i<len(quest) and quest[i]!='}'):
                     print("缺少后括号:%s"%(quest))
                 if(i<len(quest) and "@" in word):
@@ -639,8 +639,8 @@ class my_lib(object):
                 else:
                     self.label_quests[label]+=[quest]                 
     #从mysql里拉取数据
-    def process_remote_data(self,user_id):
-        self.db = pymysql.connect(host="192.168.1.62",port=3306,user="root",password="chen123",db="platformdev",charset="utf8")
+    def process_remote_data(self,user_id):	
+        self.db = pymysql.connect(host="192.168.1.245",port=3306,user="robosay",password="robosay",db="platform",charset="utf8")
         self.cursor = self.db.cursor()
         self.cursor.execute('''
         select kqq.qa_id,kq.id,kq.content
@@ -654,19 +654,26 @@ class my_lib(object):
         for data in datas:
             label_id=data[0]#id值
             quest_id=data[1]#id值
-            quest=self.clean_str(data[2])#id值
-            if(quest is None or len(quest)<=2):
-                print("问题不符合要求，已过滤:%s"%(data[2]))
+            quest=self.clean_str(data[2])
+            if(quest is None):
+                print("问题不符合要求:%s"%(data[2]))
                 continue
-            self.labels.append(label_id)
+            if(quest in self.quests):
+                print("重复的问题:%s"%(data[2]))
+                continue
+            if label_id not in self.labels:
+                self.labels.append(label_id)
             self.quests.append(quest_id)
+            self.quest_label[quest_id]=label_id
             self.words_to_id(quest,quest_id)
         return             
                 
     def build_y_vocab(self):    
-        labels = [self.one_hot(label) for label in self.labels]
-        print('获取语料与对应的标签完成,问题:%d 标签:%d'%(len(self.quests),len(self.labels)))    
+        labels = [self.one_hot(self.quest_label[quest]) for quest in self.quests]
         self.y_vocab=np.array(labels)
+        print("标签的维度为:",self.y_vocab.shape)
+        print('获取语料与对应的标签完成,问题:%d 标签:%d'%(len(self.quests),len(self.labels)))    
+        
     #对quest进行向量化
     def build_x_vocab(self):
         #以空格来切分每一个词
@@ -678,7 +685,8 @@ class my_lib(object):
         self.Vocab_Size = len(vocab_processor.vocabulary_)
         print("Vocabulary Size: {:d},quests Size:{:d}".format(self.Vocab_Size,len(x)))     
         vocab_processor.save(os.path.join(self.file_path, "vocab"))
-        print("quest:%s"%(x[0]))
+        print("quest举例:%s"%(x[0]))
+        print("quest维度",x.shape)
         self.x_vocab=x 
     def Reload_vocab(self,x=''):
         if(x==''):           
@@ -698,15 +706,15 @@ class my_lib(object):
         vectors[index] = 1
         return vectors 
 
-    def get_test_train(self,rate=0.1):
+    def get_test_train(self,rate=0.0):
         all_quests=[]
         test=[]
         train=[]
         for quest in self.quests:
             all_quests.append(self.quests.index(quest))
         all_quests=np.random.permutation(all_quests)
-         
         index=int(len(all_quests)*rate)
+        print(len(self.quests),all_quests.shape,index) 
         test=all_quests[0:index]
         train=all_quests[index:]
         test_x=self.x_vocab[test]
@@ -731,7 +739,7 @@ class my_lib(object):
     def batch_iter(self,data, batch_size, num_epochs, shuffle=True):
         """
         Generates a batch iterator for a dataset.
-        """
+        """		
         data = np.array(data)
         data_size = len(data)
         num_batches_per_epoch = int((len(data)-1)/batch_size) + 1
@@ -748,8 +756,8 @@ class my_lib(object):
                 end_index = min((batch_num + 1) * batch_size, data_size)
                 yield shuffled_data[start_index:end_index] 
             with open(os.path.join(self.file_path,'process_rate.txt'),'w',encoding='utf-8') as f:
-                f.write("%d:%d:%d\n"%(epoch+1,num_epochs,time.clock()-begin))   
-                
+                f.write("%d:%d:%d\n"%(epoch,num_epochs-1,time.clock()-begin)) 
+                     
     def write_to_pickle(self,file_name,x,y):
         path = os.path.join(self.file_path,file_name)
         print("Write data to pickle file:%s"%(path))
