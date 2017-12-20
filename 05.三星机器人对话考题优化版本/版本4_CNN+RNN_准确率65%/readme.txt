@@ -14,3 +14,6 @@
   2.采用字符级的向量比去除停用词后切词的效果好
   3.实验了RNN+CNN的模型融合
   4.LSTM的训练速度比GRU慢一倍，同时GRU的准确率在43%，比LSTM略好，但是CNN远远更好
+  
+7.原始代码介绍:https://gaussic.github.io/2017/08/30/text-classification-tensorflow/
+  该模型的工程化做的很好
