@@ -14,5 +14,7 @@ flask+seq2seq+beam search
 	
 	2.将beam_size设置到很大，然后将最后的结果进行统一重新排序，取前5个
 	
+	3.考虑:GAN+RL的生成模型
+	
 效果:
 	见截图:效果.png
