@@ -29,8 +29,8 @@ def get_args():
     parser.add_argument('-nf', '--num_filters', help='cnn num_filters',type=int,default='128')
     parser.add_argument('-l', '--learning_rate', help='cnn learning_rate',type=float,default='0.001')
     parser.add_argument('-l2', '--l2_reg_lambda', help='cnn l2_reg_lambda',type=int,default='0')
-    parser.add_argument('-t', '--time', help='leaf time',type=float,default='60')
-    parser.add_argument('-r', '--rate', help='train process',type=float,default='0')
+    parser.add_argument('-t', '--time', help='leaf time',type=float,default='0')
+    parser.add_argument('-r', '--rate', help='train process',type=float,default='1')
     
     args = parser.parse_args()
     return args 
