@@ -6,6 +6,7 @@ import time
 from cnn.cnn_module import TextCNN
 from cnn.run_cnn import train as cnn_train
 from threading import Thread
+from cnn.data import data as cnn_data
 
 class cnn_module():
     def __init__(self,args,cnn_data):
@@ -70,6 +71,8 @@ class cnn_module():
     def retrain(self):
         print('开始重新训练')
         try:
+            #重新训练的时候数据通常都发生了变化
+            self.data=cnn_data(self.args)
             cnn_train(self.args,self.data)
             self.args.rate=1.0
             self.args.time=0

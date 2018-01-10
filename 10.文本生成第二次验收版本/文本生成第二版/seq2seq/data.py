@@ -9,6 +9,8 @@ Created on 2017年12月26日
 '''
 import numpy as np
 import time
+import jieba
+import Levenshtein 
 
 class data():
     def __init__(self,args):
@@ -21,6 +23,12 @@ class data():
             for line in f.readlines():
                 line=line.split('\t')
                 data.append((self.clean_str(line[0]),self.clean_str(line[1])))
+        #导入停用词
+        with open('../data/train.txt', 'r', encoding='utf-8') as f:
+            self.stop_words=set()
+            for line in f.readlines():
+                self.stop_words.add(line.strip())
+                
         source_data,target_data=zip(*data)
         # 构造映射表
         self.word_int_to_letter, self.word_letter_to_int = self.extract_character_vocab(source_data+target_data)
@@ -118,4 +126,20 @@ class data():
     def clean_str(self,string):
         #去除空格,字母需要变为大写
         string=string.replace(' ','').strip().upper()
-        return string                   
+        return string 
+    
+    def remove_stop_words(self,quest):
+        new_quest=[]
+        for w in quest:
+            if w not in self.stop_words:
+                new_quest.append(w)
+        return ' '.join(new_quest)
+        #计算target与writed_result集合里的最小编辑距离
+    def get_min_editdis(self,target,writed_result):
+        min_distance=100 
+        for quest in writed_result:
+            min_distance=min(Levenshtein.distance(quest,target),min_distance)
+        return min_distance  
+            
+
+ 

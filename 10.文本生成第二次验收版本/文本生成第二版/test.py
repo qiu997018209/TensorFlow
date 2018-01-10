@@ -9,7 +9,7 @@ Created on 2017年12月26日
 '''
 from collections import defaultdict
 import numpy as np  
-
+import nltk
 class data():
     def __init__(self):
         self.process_data()
@@ -66,4 +66,5 @@ class data():
                 f.write('%s\t%s\t%s\t%s\t%s\t%s\n'%(values[0],quest,values[1],values[2],values[3],values[4]))
                
 if __name__=='__main__':
-    data=data()       
+    data=data() 
+    #print(nltk.word_tokenize("欢迎来中国"))      

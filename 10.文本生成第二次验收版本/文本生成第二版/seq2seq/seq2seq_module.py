@@ -9,6 +9,7 @@ Created on 2017年12月26日
 '''
 import tensorflow  as tf
 from tensorflow.python.layers.core import Dense
+from tensorflow.python.framework.ops import device
 
 class seq2seq():
     def __init__(self,args,data):
@@ -32,14 +33,15 @@ class seq2seq():
                 self.training_logits,
                 self.targets,
                 masks)
-    
+            #学习率衰减
+            learning_rate = tf.train.exponential_decay(self.learning_rate, self.global_step, 10000, 0.96, staircase=True)
             # Optimizer
-            optimizer = tf.train.AdamOptimizer(self.learning_rate)
+            optimizer = tf.train.AdamOptimizer(learning_rate)
     
             # Gradient Clipping
             gradients = optimizer.compute_gradients(self.cost)
             capped_gradients = [(tf.clip_by_value(grad, -5., 5.), var) for grad, var in gradients if grad is not None]
-            self.train_op = optimizer.apply_gradients(capped_gradients)
+            self.train_op = optimizer.apply_gradients(capped_gradients,global_step=self.global_step)
  
     # ### Seq2Seq
     # 上面已经构建完成Encoder和Decoder，下面将这两部分连接起来，构建seq2seq模型 
@@ -75,13 +77,14 @@ class seq2seq():
         # RNN cell
         def get_lstm_cell(rnn_size):
             lstm_cell = tf.contrib.rnn.LSTMCell(rnn_size, initializer=tf.random_uniform_initializer(-0.1, 0.1, seed=2))
-            return lstm_cell
+            single_cell=tf.contrib.rnn.DropoutWrapper(lstm_cell,output_keep_prob=self.drop_out)
+            return single_cell
     
         cell = tf.contrib.rnn.MultiRNNCell([get_lstm_cell(self.args.rnn_size) for _ in range(self.args.num_layers)])
         
         encoder_output, encoder_state = tf.nn.dynamic_rnn(cell, encoder_embed_input, 
                                                           sequence_length=self.source_sequence_length, dtype=tf.float32)
-        
+    
         return encoder_output, encoder_state    
     
        
@@ -102,18 +105,20 @@ class seq2seq():
         # 1. Embedding
         decoder_embeddings = tf.Variable(tf.random_uniform([len(self.data.word_letter_to_int), self.args.decoding_embedding_size]))
         decoder_embed_input = tf.nn.embedding_lookup(decoder_embeddings, self.decoder_input)
-    
+              
         # 2. 构造Decoder中的RNN单元
         def get_decoder_cell(rnn_size):
             decoder_cell = tf.contrib.rnn.LSTMCell(rnn_size,
                                                initializer=tf.random_uniform_initializer(-0.1, 0.1, seed=2))
-            return decoder_cell
+            single_cell=tf.contrib.rnn.DropoutWrapper(decoder_cell,output_keep_prob=self.drop_out)
+            return single_cell
+        
         cell = tf.contrib.rnn.MultiRNNCell([get_decoder_cell(self.args.rnn_size) for _ in range(self.args.num_layers)])
          
         # 3. Output全连接层
         output_layer = Dense(len(self.data.word_letter_to_int),
                              kernel_initializer = tf.truncated_normal_initializer(mean = 0.0, stddev=0.1))
-    
+
     
         # 4. Training decoder
         with tf.variable_scope("decode"):
@@ -163,12 +168,13 @@ class seq2seq():
         self.inputs = tf.placeholder(tf.int32, [None, None], name='encoder_inputs')
         self.targets = tf.placeholder(tf.int32, [None, None], name='targets')
         self.learning_rate = tf.placeholder(tf.float32, name='learning_rate')
-        
+        self.drop_out = tf.placeholder(tf.float32, name='drop_out')
         # 定义target序列最大长度（之后target_sequence_length和source_sequence_length会作为feed_dict的参数）
         self.target_sequence_length = tf.placeholder(tf.int32, (None,), name='target_sequence_length')
         self.max_target_sequence_length = tf.reduce_max(self.target_sequence_length, name='max_target_len')
         self.source_sequence_length = tf.placeholder(tf.int32, (None,), name='source_sequence_length')
         
+        self.global_step = tf.Variable(0, name="global_step", trainable=False)
     # ## Decoder
     # ### 对target数据进行预处理
     def process_decoder_input(self,data, vocab_to_int, batch_size):
@@ -184,4 +190,10 @@ class seq2seq():
         #tf.fill(shape,value,name=None)创建一个形状大小为shape的tensor，初始值为value
         decoder_input = tf.concat([tf.fill([batch_size, 1], vocab_to_int['<GO>']), ending], 1)
     
-        return decoder_input         
+        return decoder_input 
+
+    def get_device(self):
+        if self.args.gpu:
+            return '/gpu:0'
+        else:
+            return '/cpu:0'

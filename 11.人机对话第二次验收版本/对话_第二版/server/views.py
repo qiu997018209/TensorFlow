@@ -33,6 +33,10 @@ def chat():
         cnn_module.train(client_params,server_param)
     elif client_params['method'] == 'lookup':
         cnn_module.lookup(client_params,server_param)
+    elif client_params['method'] == 'live':
+        params={'success':'true'}
+        server_param['result']=params
+        
     server_param['id']=client_params['id']
     server_param['jsonrpc']=client_params['jsonrpc']
     server_param['method']=client_params['method']

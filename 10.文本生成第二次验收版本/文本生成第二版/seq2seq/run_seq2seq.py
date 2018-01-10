@@ -10,13 +10,15 @@ Created on 2017年12月26日
 import sys
 sys.path.append('..')
 
-from data import data
+from seq2seq.data import data
 from conf import *
-from seq2seq_module import seq2seq
+from seq2seq.seq2seq_module import seq2seq
 from datetime import timedelta
 import tensorflow as tf
 import os
 import time
+import nltk
+import jieba
 import numpy as np
 
 def get_time_dif(start_time):
@@ -26,10 +28,10 @@ def get_time_dif(start_time):
     return timedelta(seconds=int(round(time_dif)))
 
 # ## Train
-def start_train(): 
+def start_train(args,data): 
     #配置参数
     best_loss=10 
-    require_improvement=2000
+    require_improvement=5000
     total_batch=-1
     bFlag=False
     start_time = time.time()
@@ -38,8 +40,10 @@ def start_train():
         os.makedirs(args.module_path) 
     
     with tf.Graph().as_default() as g:
-        moduls=seq2seq(args,data)          
-        with tf.Session(graph=g).as_default() as sess:
+        moduls=seq2seq(args,data)
+        config = tf.ConfigProto()
+        config.gpu_options.allow_growth = True          
+        with tf.Session(graph=g,config=config).as_default() as sess:
             sess.run(tf.global_variables_initializer()) 
             # 保存模型  
             # 配置 Saver
@@ -50,7 +54,8 @@ def start_train():
                     
                     _, loss = sess.run(
                         [moduls.train_op, moduls.cost],
-                        {moduls.inputs: sources_batch,
+                        {moduls.drop_out:args.dropout,
+                         moduls.inputs: sources_batch,
                          moduls.targets: targets_batch,
                          moduls.learning_rate: args.learning_rate,
                          moduls.target_sequence_length: targets_lengths,
@@ -93,8 +98,36 @@ def start_train():
                 if bFlag==True:
                     print('最低loss值为{}'.format(best_loss))
                     break
-
-def start_test():
+#对预测结果基于bleu评测指标进行重新排序
+def rerank_by_bleu(source,targets):
+    new_source=data.remove_stop_words(jieba.lcut(source))
+    result=[]
+    writed_result=set()
+    writed_result.add(new_source)
+    for index,target in enumerate(targets):
+        new_target=data.remove_stop_words(jieba.lcut(target))
+        #生成模型给的答案的也是可以作为一定的得分的
+        score1=(len(targets)-index)/len(targets)
+        #bleu的得分
+        score2=nltk.translate.bleu_score.sentence_bleu([new_target],new_source)
+        #相似性
+        final_score=score1*0.7+score2*0.3
+        #实验发现:结果中存在很多相似性很高的,去掉相似性较高的
+        if (target not in writed_result and len(target)>=0.5*len(source) and data.get_min_editdis(target,writed_result)>2):
+            writed_result.add(target)
+            result.append((target,final_score,score1,score2)) 
+    print('target:',new_target)
+    print('source:',new_source)
+    print('按照最终得分排序:')
+    result=sorted(result,key=lambda x:x[1],reverse = True)
+    for quest in result[0:20]:
+        print(quest)
+    print('按照文本生成的结果排序:')  
+    result=sorted(result,key=lambda x:x[2],reverse = True)
+    for quest in result[0:20]:
+        print(quest) 
+       
+def start_test(args,data):
     # 输入一句话
     args.mode='test'
     while True:
@@ -102,18 +135,18 @@ def start_test():
         text = data.source_to_seq(input_word)               
         with tf.Graph().as_default() as g:
             moduls=seq2seq(args,data)            
-            with tf.Session(graph=g).as_default() as sess:
+            with tf.Session(graph=g,config=tf.ConfigProto(log_device_placement=True)).as_default() as sess:
                 # 加载模型
                 saver = tf.train.Saver() 
                 saver.restore(sess=sess, save_path=args.module_path)  # 读取保存的模型                        
                 predicts = sess.run(moduls.predicts,
-                {moduls.inputs: [text]*args.batch_size,
+                {moduls.drop_out:1.0,
+                 moduls.inputs: [text]*args.batch_size,
                  moduls.target_sequence_length: [len(input_word)*2]*args.batch_size,
                  moduls.source_sequence_length: [len(input_word)]*args.batch_size})
-        
-        print(np.shape(predicts)) 
-              
-        print('  Input Words: {}'.format("".join([data.word_int_to_letter[i] for i in text])))              
+                      
+        print('  Input Words: {}'.format("".join([data.word_int_to_letter[i] for i in text])))
+        results=[]              
         for index,answer in enumerate(predicts[0]):
             #print(answer)
             result='' 
@@ -121,11 +154,15 @@ def start_test():
                 if data.word_int_to_letter[i] == '<EOS>':
                     break
                 result+=data.word_int_to_letter[i]
-            print('%d:%s'%(index+1,result))
-            
+            results.append(result)
+            #print('%d:%s'%(index+1,result))    
+        rerank_by_bleu(input_word,results)   
 if __name__=='__main__':
     args=get_args()
+    print('参数列表:{}'.format(args))
     data=data(args)
-    start_train()
-    #start_test()
+    if args.mode=='train':
+        start_train(args,data)
+    else:
+        start_test(args,data)
     
