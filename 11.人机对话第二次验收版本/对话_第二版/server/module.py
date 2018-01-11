@@ -74,10 +74,11 @@ class cnn_module():
         print('开始重新训练')
         try:
             cnn_train(self.args,self.data)
-            self.args.rate=1.0
-            self.args.time=0
             print('开始重新载入模型')
             self.load_module()
+            #考虑到模型载入期间有人对话，知道模型载入后再将进度条设为1
+            self.args.rate=1.0
+            self.args.time=0
         except Exception as e:
             print('训练失败',e)
             self.args.rate=1.0

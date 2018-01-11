@@ -114,8 +114,10 @@ class data():
                 one_time=time.time()
                 yield batch_x,batch_y,test_x,test_y
                 one_time=time.time()-one_time
-                self.args.time=round((one_time*((self.args.num_epochs-epoch)*(num_batches_per_epoch)-batch_num))/60)
-                self.args.rate=(epoch+1)/self.args.num_epochs
+                #正确时间+1
+                self.args.time=round((one_time*((self.args.num_epochs-epoch)*(num_batches_per_epoch)-batch_num))/60)+1
+                #等模型载入后再将self.args.rate设为1,规避时间误差
+                self.args.rate=(epoch)/self.args.num_epochs
     def build_one_vector(self,raw_quest):
         quest=[self.word_to_id.get(word,self.word_to_id['<UNK>']) for word in raw_quest]
         if len(quest)>=self.args.max_document_lenth:
