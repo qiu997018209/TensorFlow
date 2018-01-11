@@ -55,6 +55,8 @@ class cnn_module():
               
     def train(self,client_params,server_param):
         params={}
+        #重新训练的时候数据通常都发生了变化
+        self.data=cnn_data(self.args)
         if len(self.data.quest_label)==0:
             params['success']="false"
             params['message']="深度学习没有数据，不能训练"
@@ -71,8 +73,6 @@ class cnn_module():
     def retrain(self):
         print('开始重新训练')
         try:
-            #重新训练的时候数据通常都发生了变化
-            self.data=cnn_data(self.args)
             cnn_train(self.args,self.data)
             self.args.rate=1.0
             self.args.time=0
