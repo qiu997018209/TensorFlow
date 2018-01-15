@@ -74,6 +74,7 @@ class data():
             all+=quest
         #兼容数据库里没有数据的情况
         if len(all)!=0:
+            self.args.vocab_size=5000#第一次没有数据,第二次加入一条数据重新训练，此时self.args.vocab_size为0
             counter = Counter(all)
             count_pairs = counter.most_common(self.args.vocab_size - 1)
             words, _ = list(zip(*count_pairs))
