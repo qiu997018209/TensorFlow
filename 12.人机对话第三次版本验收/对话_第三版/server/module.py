@@ -21,7 +21,6 @@ class cnn_module():
                 self.session.run(tf.global_variables_initializer()) 
                 saver = tf.train.Saver()
                 saver.restore(sess=self.session, save_path=self.args.module_path)  # 读取保存的模型
-        print('cnn模型加载完毕,对话功能已开启')
         
     def predict(self,client_params,server_param):
         params={}
@@ -36,14 +35,24 @@ class cnn_module():
         try:            
             feed_dict = {self.module.input_x: [self.data.build_one_vector(quest)],self.module.keep_prob: 1.0}
             predict,probs = self.session.run([self.module.predictions,self.module.scores], feed_dict=feed_dict)
-            if(probs[0][predict]>=client_params['params']['rate']):
-                print("实际准确率为:%f,要求准确率为:%f"%(probs[0][predict],client_params['params']['rate']))
-                params['success']="true"
-                params['answer']=self.data.id_to_label[str(predict[0])]
+            if client_params['params']['rate'] !=0:
+                if probs[0][predict]>=client_params['params']['rate']:
+                    print("实际准确率为:%f,要求准确率为:%f"%(probs[0][predict],client_params['params']['rate']))
+                    params['success']="true"
+                    params['answer']=self.data.id_to_label[str(predict[0])]
+                else:
+                    params['answer']='准确率低于要求，结果不可用'
+                    params['success']="false"
+                    print("实际准确率为:%f,要求准确率为:%f"%(probs[0][predict],client_params['params']['rate']))
             else:
-                params['answer']='准确率低于要求，结果不可用'
-                params['success']="false"
-                print("实际准确率为:%f,要求准确率为:%f"%(probs[0][predict],client_params['params']['rate']))
+                if probs[0][predict]>=self.accuracy:
+                    print("实际准确率为:%f,要求准确率为:%f"%(probs[0][predict],self.accuracy))
+                    params['success']="true"
+                    params['answer']=self.data.id_to_label[str(predict[0])]
+                else:
+                    params['answer']='准确率低于要求，结果不可用'
+                    params['success']="false"
+                    print("实际准确率为:%f,要求准确率为:%f"%(probs[0][predict],self.accuracy))                       
             server_param['result']=params
         except Exception as e:
             print(e)
@@ -76,6 +85,8 @@ class cnn_module():
             cnn_train(self.args,self.data)
             print('开始重新载入模型')
             self.load_module()
+            self.get_accuracy_rate() 
+            print('cnn模型加载完毕,对话功能已开启')       
             #考虑到模型载入期间有人对话，知道模型载入后再将进度条设为1
             self.args.rate=1.0
             self.args.time=0
@@ -90,4 +101,31 @@ class cnn_module():
         #以分钟计算
         params['need_time']=self.args.time
         params['success']='true'
-        server_param['result']=params     
+        server_param['result']=params
+        #计算准确率阈值
+    def get_accuracy_rate(self):
+        result=[]
+        with open('../data/xianliao.txt','r',encoding='utf-8') as f:
+            for line in f.readlines():
+                line=line.strip().split('\t')
+                feed_dict = {self.module.input_x: [self.data.build_one_vector(line[0],False)],self.module.keep_prob: 1.0}
+                predict,probs = self.session.run([self.module.predictions,self.module.scores], feed_dict=feed_dict)
+                result.append(probs[0][predict])
+        #允许90%的闲聊数据通过
+        acc_1=list(sorted(result)[int(len(result)*0.9)])[0]#result里是array格式
+        acc_2=self.data.min_accuracy
+        if acc_2>acc_1:
+            self.accuracy=(acc_1+acc_2)/2
+        else:
+            self.accuracy=acc_2
+        print('最终的准确率阈值为:{},训练数据最低准确率要求:{},过滤掉90%的闲聊数据的准确率要求:{}'.format(self.accuracy,acc_2,acc_1))
+        return 
+        
+        
+        
+        
+        
+        
+        
+        
+             

@@ -40,9 +40,9 @@ def feed_data(x_batch, y_batch, keep_prob,model):
 def evaluate(sess, x_, y_,model):
     """评估在某一数据上的准确率和损失"""
     feed_dict = feed_data(x_, y_, 1.0,model)
-    loss, acc,scores = sess.run([model.loss, model.acc,model.logits], feed_dict=feed_dict)
+    loss, acc,scores,correct_predictions = sess.run([model.loss, model.acc,model.scores,model.correct_predictions], feed_dict=feed_dict)
 
-    return loss, acc,scores
+    return loss, acc,scores,correct_predictions
 
 def train(args,data):
     with tf.Graph().as_default() as g:
@@ -72,7 +72,7 @@ def train(args,data):
                     # 每多少轮次输出在训练集和验证集上的性能
                     feed_dict[model.keep_prob] = 1.0
                     loss_train, acc_train= session.run([model.loss, model.acc], feed_dict=feed_dict)
-                    loss_val, acc_val,scores = evaluate(session, x_val, y_val,model)   # todo
+                    loss_val, acc_val,scores,correct_predictions = evaluate(session, x_val, y_val,model)   # todo
         
                     if acc_val > best_acc_val:
                         # 保存最好结果
@@ -80,6 +80,7 @@ def train(args,data):
                         last_improved = total_batch
                         saver.save(sess=session, save_path=args.module_path)
                         improved_str = '*'
+                        data.get_accuracy_rate(correct_predictions,scores)#计算准确率阈值
                     else:
                         improved_str = ''
         

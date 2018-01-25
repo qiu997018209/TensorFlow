@@ -17,6 +17,7 @@ class TextCNN(object):
     Uses an embedding layer, followed by a convolutional, max-pooling and softmax layer.
     """
     def __init__(self,args):
+        tf.set_random_seed(66)
         self.args=args
         # Placeholders for input, output and dropout
         self.input_x = tf.placeholder(tf.int32, [None, self.args.max_document_lenth], name="input_x")

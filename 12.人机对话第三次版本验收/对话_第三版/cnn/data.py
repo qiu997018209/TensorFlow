@@ -14,18 +14,18 @@ import xlrd
 import time
 import jieba
 import numpy as np
+import tensorflow as tf
 import tensorflow.contrib.keras as kr
 from collections import Counter
 from collections import defaultdict
 from cnn.tool import word_parser
 
 
-np.random.seed(0) 
-
 class data():
     def __init__(self,args):
+        np.random.seed(0)
         #初始化，数据预处理
-        self.args=args
+        self.args=args        
         self.data_process()
          
     def data_process(self):
@@ -46,9 +46,6 @@ class data():
     
     #处理mysql数据
     def process_mysql_data(self):
-        self.label_quest=defaultdict(set)#每个标签下对应的所有quest
-        self.quest_label={}
-        self.quests=set()
         self.db = pymysql.connect(host="192.168.1.245",port=3306,user="robosay",password="robosay",db="platform",charset="utf8")
         self.cursor = self.db.cursor() 
         self.cursor.execute('''
@@ -62,7 +59,7 @@ class data():
         datas = self.cursor.fetchall()
         print('原始问题数量:{num}'.format(num=len(datas)))
         for data in datas:
-            label_id=data[0]#id值
+            label_id=str(data[0])#id值
             ori_quest=self.clean_str(data[2])
             for quest in self.extend_by_sameword(ori_quest):
                 self.quests.add(quest)
@@ -95,7 +92,11 @@ class data():
                    
         if self.args.log==1:
             self.log=open('../data/log.txt','w',encoding='utf-8')
-            print('log日志功能已开启') 
+            print('log日志功能已开启')
+            
+        self.label_quest=defaultdict(set)#每个标签下对应的所有quest
+        self.quest_label={}
+        self.quests=set()         
     #获取指定行业的同义词词表                  
     def get_industry_name(self):
         file_names=[]
@@ -111,6 +112,8 @@ class data():
             self.log.close()        
         #基于同义词的扩展
     def extend_by_sameword(self,quest):         
+        if self.args.same == 0:
+            return [quest]
         local_sentences=[]
         #查找同义词词表
         for word in self.word_parser.cut(quest):
@@ -124,8 +127,7 @@ class data():
         if len(quests)>1 and self.args.log==1:
             for q in quests:
                 self.log.write(q+'\t')
-            self.log.write('\n')
-               
+            self.log.write('\n')       
         return quests
     
     def extend_quests(self,quest,local_sentences):
@@ -161,6 +163,11 @@ class data():
         all=''
         for quest in self.quests:
             all+=quest
+        #加载闲聊知识库里的词汇,防止很少数量的问题的时候，闲聊数据的输入向量都是一致的
+        with open('../data/xianliao.txt','r',encoding='utf-8') as f:
+            for line in f.readlines():
+                all+=line.strip().split('\t')[0]
+        
         #兼容数据库里没有数据的情况
         if len(all)!=0:
             self.args.vocab_size=5000#第一次没有数据,第二次加入一条数据重新训练，此时self.args.vocab_size为0
@@ -203,14 +210,15 @@ class data():
                 self.args.time=round((one_time*((self.args.num_epochs-epoch)*(num_batches_per_epoch)-batch_num))/60)+1
                 #等模型载入后再将self.args.rate设为1,规避时间误差
                 self.args.rate=(epoch)/self.args.num_epochs
-    def build_one_vector(self,raw_quest):
+    def build_one_vector(self,raw_quest,bShow=True):
         quest=[self.word_to_id.get(word,self.word_to_id['<UNK>']) for word in raw_quest]
         if len(quest)>=self.args.max_document_lenth:
             quest=quest[:self.args.max_document_lenth]
         else:
             #pad_sequences补0是往前面补
             quest=(self.args.max_document_lenth-len(quest))*[self.word_to_id['<UNK>']]+quest
-        print('问题:{}\n向量:{}'.format(raw_quest,quest))
+        if (bShow==True):
+            print('问题:{}\n向量:{}'.format(raw_quest,quest))
         return np.array(quest)                  
     #向量化           
     def build_vector(self,data,label):
@@ -218,7 +226,6 @@ class data():
         data_id, label_id = [], []
         for i in range(len(data)):
             if label[i] not in self.label_to_id:
-                print('build_vector错误:',label[i])
                 continue
             vector=[]
             for x in data[i]:
@@ -233,4 +240,12 @@ class data():
     def clean_str(self,string):
         #去除空格,字母需要变为大写
         string=string.replace(' ','').strip().upper()
-        return string 
+        return string
+    def get_accuracy_rate(self,correct_predictions,scores):
+        correct_predictions=list(correct_predictions.astype(np.int32))
+        #找到答对的索引
+        indexs=np.array([index for index,i in enumerate(correct_predictions) if i == 1])
+        #找到所有答对的里面的最小值
+        temp=[max(s) for s in scores[indexs]]
+        self.min_accuracy=min(temp)
+        print('准确率最低要求:{},平均准确率:{},最高准确率:{}'.format(min(temp),np.mean(temp),max(temp)))
