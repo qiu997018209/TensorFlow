@@ -9,9 +9,12 @@ Created on 2018年2月9日
 '''
 import random
 import numpy as np
+import sys
+sys.path.append('..')
 from collections import defaultdict
 from collections import Counter
 from gensim.models import Word2Vec
+from conf import get_args
 
 random.seed(32)
 np.random.seed(32)
@@ -33,6 +36,9 @@ class data(object):
         self.train_word2vec()
         
     def init(self):
+        #打印参数
+        print('当前配置参数列表:\n{}'.format(self.args))
+        
         ## tags, BIO
         self.tag2label = {"O": 0,
                      "B-PER": 1, "I-PER": 2,
@@ -41,26 +47,25 @@ class data(object):
                      }
         
         self.quest_label=defaultdict(int)
-        self.labels=set()
+        self.labels={value:key for key,value in self.tag2label.items()}
         self.train_data=[]
+        self.sentences=[]
         sentence=[]
+        tag=[]
         print('开始读入数据')
         with open('../data/data.txt','r',encoding='utf-8') as f:
             for line in f.readlines():
+                line=line.strip().split(' ')
                 if len(line)<=1:
                     self.sentences.append(sentence)
-                    sentence=[]
+                    self.quest_label[''.join(sentence)]=tag
+                    sentence,tag=[],[]
                     continue
-                line=line.strip().split(' ')
-                self.quest_label[line[0]]=self.tag2label[line[1]]
-                self.labels.add(self.tag2label[line[1]])
                 sentence.append(line[0]) 
-                if len(line[0]) > self.max_document_lenth:
-                    self.max_document_lenth=len(line[0])
+                tag.append(self.tag2label[line[1]])
       
         print('标签数量:{}'.format(len(self.labels)))
         print('总数据量:{}'.format(len(self.quest_label)))
-        print('最长句子长度为:{}'.format(self.max_document_lenth))
     
     def get_batch_data(self):
         """生成批次数据"""
@@ -70,7 +75,7 @@ class data(object):
         rate=int(0.9*len(shuffle_indices))                                              
         train_x,train_y=quests[shuffle_indices[0:rate]],labels[0:rate]
         test_x,test_y=quests[rate:],labels[rate:]
-        test_x,test_x_lenth=self.build_vector(test_x)        
+        test_x,test_x_lenth,test_y=self.build_vector(test_x,test_y)        
         print('train_x,train_y,test_x,test_y',train_x.shape,train_y.shape,test_x.shape,test_y.shape)
         num_batches_per_epoch = int((len(train_x)-1)/self.args.batch_size) + 1
         print('num_batches_per_epoch:',num_batches_per_epoch)
@@ -81,14 +86,12 @@ class data(object):
                 end_index = min((batch_num + 1) * self.args.batch_size, len(train_x))
                 batch_x=train_x[start_index:end_index]
                 batch_y=train_y[start_index:end_index]
-                batch_x,batch_x_lenth=self.build_vector(batch_x)
+                batch_x,batch_x_lenth,batch_y=self.build_vector(batch_x,batch_y)
                 yield batch_x,batch_y,batch_x_lenth,test_x,test_y,test_x_lenth    
         #建立词汇表
     def build_vocab_size(self):
         """根据训练集构建词汇表，存储"""
-        all=''
-        [all+=quest for quest in self.quest_label]
-
+        all=''.join(self.quest_label.keys())
         counter = Counter(all)
         count_pairs = counter.most_common(5000 - 1)
         words, _ = list(zip(*count_pairs))
@@ -96,20 +99,28 @@ class data(object):
         words = ['<UNK>'] + list(words)
         self.word_to_id=dict(zip(words,range(len(words))))
         print('词汇表数量:%d'%(len(words))) 
-        self.data.vocab_size=len(words) 
+        self.vocab_size=len(words) 
         
         #向量化
-    def build_vector(self,batch_x)
+    def build_vector(self,batch_x,batch_y):
         results=[]
         for quest in batch_x:
             vec=[self.word_to_id[w] for w in quest]
             results.append(vec)
         results=self.pad_sequences(results)
-        return np.array(results[0]),np.array(results[1])
+        
+        labels=[]
+        for label in batch_y:
+            ll=[0]*len(results[0][0])#对应的tag的长度应该是和quest一样，quest填充的部分，一律为0
+            for l in label:
+                ll[l]=1
+            labels.append(ll)
+        return np.array(results[0]),np.array(results[1]),np.array(labels)
     
         #训练word2vec
     def train_word2vec(self):
         kwargs={}
+        
         kwargs["workers"]=8#设置几个工作线程来训练模型
         kwargs["sentences"] = self.sentences
         kwargs["min_count"] = 0 #设置最低有效词频
@@ -118,13 +129,16 @@ class data(object):
 
         print ("Start training word2vec...")
         word2vec = Word2Vec(**kwargs)
-        self.embeddings = {}
+        self.embeddings = [0]*len(self.word_to_id)
         
-        for word in self.word_to_id():
-            self.embeddings[word] = word2vec[word]
-            
+        for word,value in self.word_to_id.items():
+            try:
+                self.embeddings[value] = word2vec[word]
+            except:
+                self.embeddings[value] = np.array([0]*self.args.embedded_size)#<UNK>这个单词是不存在的，设为0
+        self.embeddings=np.float32(self.embeddings)#转换格式    
         #将本批次的填充为一个长度
-    def pad_sequences(sequences, pad_mark=0):
+    def pad_sequences(self,sequences, pad_mark=0):
         max_len = max(map(lambda x : len(x), sequences))
         seq_list, seq_len_list = [], []
         for seq in sequences:
@@ -134,4 +148,5 @@ class data(object):
         return seq_list, seq_len_list
      
 if __name__=='__main__':
-    d=data()            
+    args=get_args()
+    d=data(args)            

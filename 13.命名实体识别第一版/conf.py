@@ -21,7 +21,10 @@ def get_args():
     parser.add_argument('--hidden_dim', help='LSTM隐层的大小',type=int,default=128)
     parser.add_argument('-m','--module_path', help='模型存放地址',type=str,default='./runs/bilstm_crf')
     parser.add_argument('--optimizer', help='优化器',type=str,default='Adam')
-    
+    parser.add_argument('--lr', help='优化器',type=float,default='0.0001')
+    parser.add_argument('--batch_size', help='batch_size',type=int,default=64)
+    parser.add_argument('--num_epochs', help='num_epochs',type=int,default=10)
+    parser.add_argument('--print_per_batch', help='print_per_batch',type=int,default=10)
     args = parser.parse_args()
     return args 
 

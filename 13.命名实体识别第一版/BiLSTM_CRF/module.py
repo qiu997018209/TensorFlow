@@ -38,7 +38,7 @@ class BiLSTM_CRF(object):
                 sequence_length=self.sequence_lengths,
                 dtype=tf.float32)
             output = tf.concat([output_fw_seq, output_bw_seq], axis=-1)#此处需要打印一下调试信息，观察一下维度
-            output = tf.nn.dropout(output, self.args.dropout)        
+            output = tf.nn.dropout(output, self.keep_prob)        
 
         with tf.variable_scope("proj"):
             W = tf.get_variable(name="W",
@@ -81,10 +81,11 @@ class BiLSTM_CRF(object):
                 optim = tf.train.GradientDescentOptimizer(learning_rate=self.args.lr)
 
             grads_and_vars = optim.compute_gradients(self.loss)
-            grads_and_vars_clip = [[tf.clip_by_value(g, -self.clip_grad, self.clip_grad), v] for g, v in grads_and_vars]
+            grads_and_vars_clip = [[tf.clip_by_value(g, -5.0, 5.0), v] for g, v in grads_and_vars]
             self.train_op = optim.apply_gradients(grads_and_vars_clip, global_step=self.global_step)
    
     def add_placeholders(self):
         self.batch_x = tf.placeholder(tf.int32, shape=[None, None], name="x")
-        self.batch_y = tf.placeholder(tf.int32, shape=[None, None], name="y")
+        self.batch_y = tf.placeholder(tf.int32, shape=[None,None], name="y")
         self.sequence_lengths = tf.placeholder(tf.int32, shape=[None], name="sequence_lengths")
+        self.keep_prob = tf.placeholder(tf.float32, name="dropout_keep_prob")
