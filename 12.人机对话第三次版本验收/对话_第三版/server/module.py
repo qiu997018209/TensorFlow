@@ -5,14 +5,17 @@ import os
 import time
 from cnn.cnn_module import TextCNN
 from cnn.run_cnn import train as cnn_train
-from threading import Thread
+from threading import Thread,Timer
 from cnn.data import data as cnn_data
+from log import *
 
 class cnn_module():
     def __init__(self,args,cnn_data):
         self.args=args
         self.data=cnn_data
-       
+        t=Timer(1,log_deamon)
+        t.start() #启动后来日志deamon,保证没有打印日志的时候，也存在当天日志文件    
+            
     def load_module(self):     
         with tf.Graph().as_default() as g:
             self.module=TextCNN(self.args)
@@ -29,7 +32,7 @@ class cnn_module():
         if len(self.data.quest_label)==0:
             params['answer']='深度学习没有导入数据，无法提供对话功能'
             params['success']="false"
-            print("深度学习没有导入数据，无法提供对话功能")
+            log("深度学习没有导入数据，无法提供对话功能",'error')
             server_param['result']=params
             return
         try:            
@@ -37,28 +40,28 @@ class cnn_module():
             predict,probs = self.session.run([self.module.predictions,self.module.scores], feed_dict=feed_dict)
             if client_params['params']['rate'] !=0:
                 if probs[0][predict]>=client_params['params']['rate']:
-                    print("实际准确率为:%f,要求准确率为:%f"%(probs[0][predict],client_params['params']['rate']))
+                    log("实际准确率为:%f,要求准确率为:%f"%(probs[0][predict],client_params['params']['rate']))
                     params['success']="true"
                     params['answer']=self.data.id_to_label[str(predict[0])]
                 else:
                     params['answer']='准确率低于要求，结果不可用'
                     params['success']="false"
-                    print("实际准确率为:%f,要求准确率为:%f"%(probs[0][predict],client_params['params']['rate']))
+                    log("实际准确率为:%f,要求准确率为:%f"%(probs[0][predict],client_params['params']['rate']))
             else:
                 if probs[0][predict]>=self.accuracy:
-                    print("实际准确率为:%f,要求准确率为:%f"%(probs[0][predict],self.accuracy))
+                    log("实际准确率为:%f,要求准确率为:%f"%(probs[0][predict],self.accuracy))
                     params['success']="true"
                     params['answer']=self.data.id_to_label[str(predict[0])]
                 else:
                     params['answer']='准确率低于要求，结果不可用'
                     params['success']="false"
-                    print("实际准确率为:%f,要求准确率为:%f"%(probs[0][predict],self.accuracy))                       
+                    log("实际准确率为:%f,要求准确率为:%f"%(probs[0][predict],self.accuracy))                       
             server_param['result']=params
         except Exception as e:
             print(e)
             params['answer']='使用对话功能前请先训练模型'
             params['success']="false"
-            print("深度学习有数据，但是没有训练就开始对话")
+            log("深度学习有数据，但是没有训练就开始对话",'error')
             server_param['result']=params
             return            
               
@@ -83,15 +86,15 @@ class cnn_module():
             #重新训练的时候数据通常都发生了变化
             self.data=cnn_data(self.args)
             cnn_train(self.args,self.data)
-            print('开始重新载入模型')
+            log('开始重新载入模型')
             self.load_module()
             self.get_accuracy_rate() 
-            print('cnn模型加载完毕,对话功能已开启')       
+            log('cnn模型加载完毕,对话功能已开启')       
             #考虑到模型载入期间有人对话，知道模型载入后再将进度条设为1
             self.args.rate=1.0
             self.args.time=0
         except Exception as e:
-            print('训练失败',e)
+            log('训练失败,{}'.format(e),'error')
             self.args.rate=1.0
             self.args.time=0
         #查询进度
@@ -118,14 +121,5 @@ class cnn_module():
             self.accuracy=(acc_1+acc_2)/2
         else:
             self.accuracy=acc_2
-        print('最终的准确率阈值为:{},训练数据最低准确率要求:{},过滤掉90%的闲聊数据的准确率要求:{}'.format(self.accuracy,acc_2,acc_1))
-        return 
-        
-        
-        
-        
-        
-        
-        
-        
-             
+        log('最终的准确率阈值为:{},训练数据最低准确率要求:{},过滤掉90%的闲聊数据的准确率要求:{}'.format(self.accuracy,acc_2,acc_1))
+        return        

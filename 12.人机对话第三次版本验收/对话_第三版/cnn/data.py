@@ -19,7 +19,7 @@ import tensorflow.contrib.keras as kr
 from collections import Counter
 from collections import defaultdict
 from cnn.tool import word_parser
-
+from log import *
 
 class data():
     def __init__(self,args):
@@ -57,7 +57,7 @@ class data():
         and kqq.qa_id in(select id from kb_qa where parent_id in(select id from kb_scml where type='0' and user_id = %d and is_delete = '0'));
         '''%(self.args.user_id))       
         datas = self.cursor.fetchall()
-        print('原始问题数量:{num}'.format(num=len(datas)))
+        log('原始问题数量:{num}'.format(num=len(datas)))
         for data in datas:
             label_id=str(data[0])#id值
             ori_quest=self.clean_str(data[2])
@@ -68,7 +68,7 @@ class data():
                 #基于同义词的扩展
                 if len(quest) > self.args.max_document_lenth:
                     self.args.max_document_lenth=len(quest) 
-        print('扩充后问题数量:{num}'.format(num=len(self.quest_label)))
+        log('扩充后问题数量:{num}'.format(num=len(self.quest_label)))
         self.db.close()
         
     def data_init(self):
@@ -78,7 +78,7 @@ class data():
             self.same_words=defaultdict(set)#同义词词组
             file_names=self.get_industry_name()
             for name in file_names:
-                print('当前加载的同义词词表文件为:{name}'.format(name=name))
+                log('当前加载的同义词词表文件为:{name}'.format(name=name))
                 with open(name,'r',encoding='utf-8') as f: 
                     for line in f.readlines():
                         line=line.strip().split('=')
@@ -88,11 +88,11 @@ class data():
                         if len(words)<=1:
                             continue
                         self.same_words[line[0]].update(words)
-            print('同义词词表的数量为:{num}'.format(num=len(self.same_words)))
+            log('同义词词表的数量为:{num}'.format(num=len(self.same_words)))
                    
         if self.args.log==1:
             self.log=open('../data/log.txt','w',encoding='utf-8')
-            print('log日志功能已开启')
+            log('同义词扩充log日志功能已开启')
             
         self.label_quest=defaultdict(set)#每个标签下对应的所有quest
         self.quest_label={}
@@ -152,8 +152,8 @@ class data():
             
         #读取标签    
     def get_labels(self):
-        print('max_document_lenth',self.args.max_document_lenth)
-        print('标签数量:%d'%(len(self.label_quest)))
+        log('max_document_lenth{}'.format(self.args.max_document_lenth))
+        log('标签数量:%d'%(len(self.label_quest)))
         self.label_to_id=dict(zip(self.label_quest.keys(),range(len(self.label_quest))))
         self.id_to_label={str(v):k for k,v in self.label_to_id.items()}
         self.args.num_class = len(self.label_quest)
@@ -179,7 +179,7 @@ class data():
         else:
             words = ['<UNK>']
         self.word_to_id=dict(zip(words,range(len(words))))
-        print('词汇表数量:%d'%(len(words))) 
+        log('词汇表数量:%d'%(len(words))) 
         self.args.vocab_size=len(words)
         #获取批量测试数据
     def get_batch_data(self):
@@ -192,11 +192,11 @@ class data():
         shuffle_indices=np.random.permutation(np.arange(len(self.quest_label)))[0:min(len(self.quest_label),5000)]
         test_x,test_y=quests[shuffle_indices],labels[shuffle_indices]
         test_x,test_y=self.build_vector(test_x,test_y)        
-        print('train_x,train_y,test_x,test_y',train_x.shape,train_y.shape,test_x.shape,test_y.shape)
+        log('train_x:{},train_y:{},test_x:{},test_y:{}'.format(train_x.shape,train_y.shape,test_x.shape,test_y.shape))
         num_batches_per_epoch = int((len(train_x)-1)/self.args.batch_size) + 1
-        print('num_batches_per_epoch:',num_batches_per_epoch)
+        log('num_batches_per_epoch:{}'.format(num_batches_per_epoch))
         for epoch in range(self.args.num_epochs): 
-            print('Epoch:', epoch + 1)
+            log('Epoch:{}'.format(epoch + 1))
             for batch_num in range(num_batches_per_epoch):
                 start_index = batch_num * self.args.batch_size  
                 end_index = min((batch_num + 1) * self.args.batch_size, len(train_x))
@@ -218,7 +218,7 @@ class data():
             #pad_sequences补0是往前面补
             quest=(self.args.max_document_lenth-len(quest))*[self.word_to_id['<UNK>']]+quest
         if (bShow==True):
-            print('问题:{}\n向量:{}'.format(raw_quest,quest))
+            log('问题:{}\n向量:{}'.format(raw_quest,quest))
         return np.array(quest)                  
     #向量化           
     def build_vector(self,data,label):
@@ -248,4 +248,4 @@ class data():
         #找到所有答对的里面的最小值
         temp=[max(s) for s in scores[indexs]]
         self.min_accuracy=min(temp)
-        print('准确率最低要求:{},平均准确率:{},最高准确率:{}'.format(min(temp),np.mean(temp),max(temp)))
+        log('准确率最低要求:{},平均准确率:{},最高准确率:{}'.format(min(temp),np.mean(temp),max(temp)))

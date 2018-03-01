@@ -53,6 +53,7 @@ class TextCNN(object):
                     name="conv")
                 # Apply nonlinearity
                 h = tf.nn.relu(tf.nn.bias_add(conv, b), name="relu")
+                print(h.shape)
                 # Maxpooling over the outputs
                 pooled = tf.nn.max_pool(
                     h,
@@ -60,6 +61,7 @@ class TextCNN(object):
                     strides=[1, 1, 1, 1],
                     padding='VALID',
                     name="pool")
+                print(pooled.shape)
                 pooled_outputs.append(pooled)
 
         # Combine all the pooled features

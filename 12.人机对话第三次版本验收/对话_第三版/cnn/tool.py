@@ -8,6 +8,7 @@ Created on 2018年1月3日
 
 '''
 from collections import defaultdict
+from log import *
 
 class TrieNode(object):
     def __init__(self):
@@ -81,7 +82,7 @@ class word_parser(object):
         self.data_process()
         
     def data_process(self):
-        print('开始为动态分词引擎插入数据')
+        log('开始为动态分词引擎插入数据')
         #载入脱敏词汇表
         self.insert_data()
          

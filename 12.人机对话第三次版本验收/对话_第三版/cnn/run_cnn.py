@@ -19,6 +19,7 @@ from datetime import timedelta
 from cnn.cnn_module import TextCNN
 from cnn.data import data
 from conf import *
+from log import log
 import tensorflow as tf
 import numpy as np
 
@@ -54,7 +55,7 @@ def train(args,data):
             if not os.path.exists(args.module_path):
                 os.makedirs(args.module_path)
             start_time = time.time()
-            print('Training and evaluating...')
+            log('Training and evaluating...')
             start_time = time.time()
             total_batch = 0              # 总批次
             best_acc_val = 0.0           # 最佳验证集准确率
@@ -87,18 +88,18 @@ def train(args,data):
                     time_dif = get_time_dif(start_time)
                     msg = 'total_batch: {0:>6}, Train Loss: {1:>6.2}, Train Acc: {2:>7.2%},'\
                         + ' Val Loss: {3:>6.2}, Val Acc: {4:>7.2%}, Time: {5} {6}'
-                    print(msg.format(total_batch, loss_train, acc_train, loss_val, acc_val, time_dif, improved_str))
+                    log(msg.format(total_batch, loss_train, acc_train, loss_val, acc_val, time_dif, improved_str))
         
                 session.run(model.optim, feed_dict=feed_dict)  # 运行优化
                 total_batch += 1
         
                 if total_batch - last_improved > require_improvement:
                     # 验证集正确率长期不提升，提前结束训练
-                    print("No optimization for a long time, auto-stopping...")
+                    log("No optimization for a long time, auto-stopping...")
                     flag = True
                     break  # 跳出循环
             if flag:  # 同上
-                print('最佳准确率:',best_acc_val)
+                log('最佳准确率:{}'.format(best_acc_val))
 
 
 if __name__ == '__main__': 
