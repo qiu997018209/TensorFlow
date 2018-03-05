@@ -9,6 +9,7 @@ from threading import Thread,Timer
 from cnn.data import data as cnn_data
 from log import *
 
+
 class cnn_module():
     def __init__(self,args,cnn_data):
         self.args=args
@@ -122,4 +123,14 @@ class cnn_module():
         else:
             self.accuracy=acc_2
         log('最终的准确率阈值为:{},训练数据最低准确率要求:{},过滤掉90%的闲聊数据的准确率要求:{}'.format(self.accuracy,acc_2,acc_1))
-        return        
+        return  
+    def start_log(self,client_params,server_param):
+        if client_params['params']['log'] == 'true':
+            set_flag(True)
+            log('现在开启log日志记录功能')
+        else:
+            log('现在关闭log日志记录功能')
+            set_flag(False)
+        params={}
+        params['success']='true'
+        server_param['result']=params

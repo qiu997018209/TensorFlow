@@ -37,8 +37,10 @@ def chat():
         cnn_module.train(client_params,server_param)
     elif client_params['method'] == 'lookup':
         cnn_module.lookup(client_params,server_param)
+    elif client_params['method'] == 'log':
+        cnn_module.start_log(client_params,server_param)
     elif client_params['method'] == 'live':
-        params={'success':'true'}
+        params={'success':'true','version':args.version}
         server_param['result']=params
         
     server_param['id']=client_params['id']
