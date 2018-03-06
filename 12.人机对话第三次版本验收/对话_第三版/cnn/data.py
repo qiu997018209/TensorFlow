@@ -60,7 +60,11 @@ class data():
         log('原始问题数量:{num}'.format(num=len(datas)))
         for data in datas:
             label_id=str(data[0])#id值
-            ori_quest=self.clean_str(data[2])
+            try:
+                ori_quest=self.clean_str(data[2])
+            except Exception as e:
+                print(e)
+                log('mysql中label_id为{}的问题为空'.format(label_id),'error')
             for quest in self.extend_by_sameword(ori_quest):
                 self.quests.add(quest)
                 self.label_quest[label_id].add(quest)
